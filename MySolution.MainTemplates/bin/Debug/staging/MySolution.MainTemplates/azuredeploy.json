@@ -1,0 +1,36 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    "ContainerUri": {
+      "type": "string"
+    },
+    "ContainerSasToken": {
+      "type": "string"
+    },
+    "luis_1_apiKey": {
+      "type": "string"
+    }
+  },
+  "variables": {},
+  "resources": [
+    {
+      "apiVersion": "2017-05-10",
+      "name": "NationalityPrediction",
+      "type": "Microsoft.Resources/deployments",
+      "properties": {
+        "mode": "Incremental",
+        "templateLink": {
+          "uri": "https://cicddemo.blob.core.windows.net/releases-public/_CICD Logic Apps-CI/output/MySolution.LogicApps/NationalityPrediction/NationalityPrediction.json",
+          "contentVersion": "1.0.0.0"
+        },
+        "parameters": {
+          "luis_1_apiKey": {
+            "value": "123456"
+          }
+        }
+      }
+    }
+  ],
+  "outputs": {}
+}

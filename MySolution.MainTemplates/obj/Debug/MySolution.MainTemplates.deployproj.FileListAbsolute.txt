@@ -1,0 +1,1 @@
+C:\Repos\CICDDemo\MySolution.LogicApps\MySolution.MainTemplates\obj\Debug\MySolution.MainTemplates.deployproj.CoreCompileInputs.cache

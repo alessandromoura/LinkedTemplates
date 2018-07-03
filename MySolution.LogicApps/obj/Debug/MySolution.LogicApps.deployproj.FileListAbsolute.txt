@@ -1,0 +1,2 @@
+c:\users\alessandro.moura\source\repos\MySolution.LogicApps\MySolution.LogicApps\obj\Debug\MySolution.LogicApps.deployproj.CoreCompileInputs.cache
+C:\Repos\CICDDemo\MySolution.LogicApps\MySolution.LogicApps\obj\Debug\MySolution.LogicApps.deployproj.CoreCompileInputs.cache

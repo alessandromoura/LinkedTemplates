@@ -1,0 +1,72 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    "ContainerUri": {
+      "type": "string"
+    },
+    "ContainerSasToken": {
+      "type": "string"
+    },
+    "luis_1_apiKey-linked": {
+      "type": "string"
+    },
+    "StorageName-linked": {
+      "type": "string"
+    }
+
+  },
+  "variables": {},
+  "resources": [
+    {
+      "apiVersion": "2017-05-10",
+      "name": "NationalityPrediction",
+      "type": "Microsoft.Resources/deployments",
+      "properties": {
+        "mode": "Incremental",
+        "templateLink": {
+          "uri": "https://cicddemo.blob.core.windows.net/releases-public/_CICD Logic Apps-CI/output/MySolution.LogicApps/NationalityPrediction/NationalityPrediction.json",
+          "contentVersion": "1.0.0.0"
+        },
+        "parameters": {
+          "luis_1_apiKey": {
+            "value": "[parameters('luis_1_apiKey-linked')]"
+          }
+        }
+      }
+    },
+    {
+      "apiVersion": "2017-05-10",
+      "name": "AnotherLogicApp",
+      "type": "Microsoft.Resources/deployments",
+      "properties": {
+        "mode": "Incremental",
+        "templateLink": {
+          "uri": "https://cicddemo.blob.core.windows.net/releases-public/_CICD Logic Apps-CI/output/MySolution.LogicApps/AnotherLogicApp/AnotherLogicApp.json",
+          "contentVersion": "1.0.0.0"
+        },
+        "parameters": {}
+      }
+    },
+    {
+      "apiVersion": "2017-05-10",
+      "name": "NZKS.Storage",
+      "type": "Microsoft.Resources/deployments",
+      "properties": {
+        "mode": "Incremental",
+        "templateLink": {
+          "uri": "https://cicddemo.blob.core.windows.net/releases-public/_CICD Logic Apps-CI/output/MySolution.Storage/Storage.json",
+          "contentVersion": "1.0.0.0"
+        },
+        "parameters": {
+          "StorageName-arm": {
+            "value": "[parameters('StorageName-linked')]"
+          }
+        }
+      }
+    }
+
+
+  ],
+  "outputs": {}
+}

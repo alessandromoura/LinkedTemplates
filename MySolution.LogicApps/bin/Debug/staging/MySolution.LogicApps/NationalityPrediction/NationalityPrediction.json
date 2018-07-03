@@ -1,0 +1,257 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    "microsofttranslator_1_Connection_Name": {
+      "type": "string",
+      "defaultValue": "microsofttranslator"
+    },
+    "microsofttranslator_1_Connection_DisplayName": {
+      "type": "string",
+      "defaultValue": "Microsoft Translator"
+    },
+    "luis_1_Connection_Name": {
+      "type": "string",
+      "defaultValue": "luis"
+    },
+    "luis_1_Connection_DisplayName": {
+      "type": "string",
+      "defaultValue": "luisConnection"
+    },
+    "luis_1_apiKey": {
+      "type": "securestring",
+      "metadata": {
+        "description": "API Key"
+      }
+    }
+  },
+  "variables": {},
+  "resources": [
+    {
+      "name": "NationalityPrediction",
+      "type": "Microsoft.Logic/workflows",
+      "location": "[resourceGroup().location]",
+      "tags": {
+        "displayName": "LogicApp"
+      },
+      "apiVersion": "2016-06-01",
+      "properties": {
+        "definition": {
+          "$schema": "https://schema.management.azure.com/providers/Microsoft.Logic/schemas/2016-06-01/workflowdefinition.json#",
+          "actions": {
+            "Response": {
+              "type": "Response",
+              "kind": "http",
+              "inputs": {
+                "statusCode": 200,
+                "body": "@variables('intent')",
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "intent": {
+                      "type": "string"
+                    },
+                    "score": {
+                      "type": "number"
+                    }
+                  }
+                }
+              },
+              "runAfter": {
+                "Switch": [
+                  "Succeeded"
+                ]
+              }
+            },
+            "Detect_language": {
+              "type": "ApiConnection",
+              "inputs": {
+                "host": {
+                  "connection": {
+                    "name": "@parameters('$connections')['microsofttranslator']['connectionId']"
+                  }
+                },
+                "method": "get",
+                "path": "/Detect",
+                "queries": {
+                  "query": "@triggerBody()?['text']"
+                }
+              },
+              "runAfter": {
+                "Initialize_variable": [
+                  "Succeeded"
+                ]
+              }
+            },
+            "Switch": {
+              "type": "Switch",
+              "expression": "@body('Detect_language')?['Name']",
+              "cases": {
+                "Case_English": {
+                  "case": "English",
+                  "actions": {
+                    "Get_prediction": {
+                      "type": "ApiConnection",
+                      "inputs": {
+                        "host": {
+                          "connection": {
+                            "name": "@parameters('$connections')['luis']['connectionId']"
+                          }
+                        },
+                        "method": "get",
+                        "path": "/luis/v2.0/apps/@{encodeURIComponent('b86891e6-f8cd-4aa0-9c3e-08ae5df442c2')}/",
+                        "queries": {
+                          "q": "@triggerBody()?['text']",
+                          "verbose": true
+                        }
+                      },
+                      "runAfter": {}
+                    },
+                    "Set_variable": {
+                      "type": "SetVariable",
+                      "inputs": {
+                        "name": "intent",
+                        "value": "@body('Get_prediction')?['topScoringIntent']"
+                      },
+                      "runAfter": {
+                        "Get_prediction": [
+                          "Succeeded"
+                        ]
+                      }
+                    }
+                  }
+                },
+                "Case_Portuguese": {
+                  "case": "Portuguese",
+                  "actions": {
+                    "Get_prediction_2": {
+                      "type": "ApiConnection",
+                      "inputs": {
+                        "host": {
+                          "connection": {
+                            "name": "@parameters('$connections')['luis']['connectionId']"
+                          }
+                        },
+                        "method": "get",
+                        "path": "/luis/v2.0/apps/@{encodeURIComponent('5344f47c-ebe3-464f-8b22-84c91a8a2353')}/",
+                        "queries": {
+                          "q": "@triggerBody()?['text']",
+                          "verbose": true
+                        }
+                      },
+                      "runAfter": {}
+                    },
+                    "Set_variable_2": {
+                      "type": "SetVariable",
+                      "inputs": {
+                        "name": "intent",
+                        "value": "@body('Get_prediction_2')?['topScoringIntent']"
+                      },
+                      "runAfter": {
+                        "Get_prediction_2": [
+                          "Succeeded"
+                        ]
+                      }
+                    }
+                  }
+                }
+              },
+              "default": {
+                "actions": {}
+              },
+              "runAfter": {
+                "Detect_language": [
+                  "Succeeded"
+                ]
+              }
+            },
+            "Initialize_variable": {
+              "type": "InitializeVariable",
+              "inputs": {
+                "variables": [
+                  {
+                    "name": "intent",
+                    "type": "Object"
+                  }
+                ]
+              },
+              "runAfter": {}
+            }
+          },
+          "parameters": {
+            "$connections": {
+              "defaultValue": {},
+              "type": "Object"
+            }
+          },
+          "triggers": {
+            "manual": {
+              "type": "Request",
+              "kind": "Http",
+              "inputs": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "text": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "contentVersion": "1.0.0.0",
+          "outputs": {}
+        },
+        "parameters": {
+          "$connections": {
+            "value": {
+              "microsofttranslator": {
+                "id": "[concat(subscription().id, '/providers/Microsoft.Web/locations/', resourceGroup().location, '/managedApis/', 'microsofttranslator')]",
+                "connectionId": "[resourceId('Microsoft.Web/connections', parameters('microsofttranslator_1_Connection_Name'))]",
+                "connectionName": "[parameters('microsofttranslator_1_Connection_Name')]"
+              },
+              "luis": {
+                "id": "[concat(subscription().id, '/providers/Microsoft.Web/locations/', resourceGroup().location, '/managedApis/', 'luis')]",
+                "connectionId": "[resourceId('Microsoft.Web/connections', parameters('luis_1_Connection_Name'))]",
+                "connectionName": "[parameters('luis_1_Connection_Name')]"
+              }
+            }
+          }
+        }
+      },
+      "dependsOn": [
+        "[resourceId('Microsoft.Web/connections', parameters('microsofttranslator_1_Connection_Name'))]",
+        "[resourceId('Microsoft.Web/connections', parameters('luis_1_Connection_Name'))]"
+      ]
+    },
+    {
+      "type": "MICROSOFT.WEB/CONNECTIONS",
+      "apiVersion": "2016-06-01",
+      "name": "[parameters('microsofttranslator_1_Connection_Name')]",
+      "location": "[resourceGroup().location]",
+      "properties": {
+        "api": {
+          "id": "[concat(subscription().id, '/providers/Microsoft.Web/locations/', resourceGroup().location, '/managedApis/', 'microsofttranslator')]"
+        },
+        "displayName": "[parameters('microsofttranslator_1_Connection_DisplayName')]"
+      }
+    },
+    {
+      "type": "MICROSOFT.WEB/CONNECTIONS",
+      "apiVersion": "2016-06-01",
+      "name": "[parameters('luis_1_Connection_Name')]",
+      "location": "[resourceGroup().location]",
+      "properties": {
+        "api": {
+          "id": "[concat(subscription().id, '/providers/Microsoft.Web/locations/', resourceGroup().location, '/managedApis/', 'luis')]"
+        },
+        "displayName": "[parameters('luis_1_Connection_DisplayName')]",
+        "parameterValues": {
+          "apiKey": "[parameters('luis_1_apiKey')]"
+        }
+      }
+    }
+  ],
+  "outputs": {}
+}
